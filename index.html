@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Oche Coach</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700;900&family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <button id="langToggle" class="top-btn lang-toggle">EN | SK</button>
+  <button id="infoToggle" class="top-btn info-toggle">OCHE:COACH</button>
+
+  <div id="onboardingView" class="app-container hidden">
+    <header class="lobby-header">
+      <img src="https://raw.githubusercontent.com/dcpoprad/dc-poprad-assets/main/OC_logo.png" alt="Oche Coach Logo" class="app-logo onboarding-logo">
+    </header>
+    <main class="onboarding-content">
+      <h1 id="t_welcomeTitle">WELCOME</h1>
+      <p id="t_welcomeText">Pure zen training. No counting, no scoring. Just you and the board.</p>
+    </main>
+    <nav class="action-area">
+      <button id="btnUnderstand" class="btn-secondary-small">GOT IT</button>
+    </nav>
+  </div>
+
+  <div id="lobbyView" class="app-container hidden">
+    <header class="lobby-header dynamic-logo-header">
+      <img src="https://raw.githubusercontent.com/dcpoprad/dc-poprad-assets/main/OC_logo.png" alt="Oche Coach Logo" class="app-logo">
+    </header>
+
+    <div class="selection-group">
+      <h3 id="t_duration">DURATION</h3>
+      <div class="tile-grid">
+        <div class="tile time-tile" data-val="30">30 MIN</div>
+        <div class="tile time-tile" data-val="45">45 MIN</div>
+        <div class="tile time-tile" data-val="60">60 MIN</div>
+        <div class="tile time-tile" data-val="90">90 MIN</div>
+        <div class="tile time-tile ultimate-mode" data-val="180">ULTIMATE<br>3 x 60 MIN</div>
+      </div>
+    </div>
+
+    <div class="selection-group">
+      <h3 id="t_focus">FOCUS</h3>
+      <div class="tile-grid">
+        <div class="tile focus-tile" data-val="Singles">Singles</div>
+        <div class="tile focus-tile" data-val="Scoring">Scoring</div>
+        <div class="tile focus-tile" data-val="Doubles">Doubles</div>
+        <div class="tile focus-tile" data-val="Checkouts">Checkouts</div>
+        <div class="tile focus-tile mix-tile" id="mixTile" data-val="Mix">Mix</div>
+      </div>
+    </div>
+
+    <div class="selection-group">
+      <h3 id="t_tournament">TOURNAMENT</h3>
+      <div class="tile-grid">
+        <div class="tile tourney-tile" id="warmUpBtn" data-val="15">WARM-UP 15 MIN</div>
+      </div>
+    </div>
+
+    <div class="action-area">
+      <button id="enterBtn" class="btn-primary" disabled>GO TO OCHE</button>
+    </div>
+  </div>
+
+  <div id="hintView" class="app-container hidden">
+    <button class="btn-top-corner back-trigger" style="left: 15px; right: auto;">
+      <span class="x-icon">←</span>
+      <span class="x-text" id="t_back">BACK</span>
+    </button>
+    
+    <header class="hint-header">
+      <h1 id="hintCategory">FOCUS</h1>
+      <h2 id="hintTitle">GAME NAME</h2>
+    </header>
+    <main class="hint-content">
+      <p id="hintLongText">Description...</p>
+    </main>
+    <nav class="controls-vertical">
+      <button id="btnChangeGame" class="btn-secondary">CHANGE</button>
+      <button id="hintReadyBtn" class="btn-primary">GAME ON!</button>
+    </nav>
+  </div>
+
+  <div id="timerView" class="app-container hidden">
+    <button class="btn-top-corner exit-trigger">
+      <span class="x-icon">✕</span>
+      <span class="x-text" id="t_exit">EXIT</span>
+    </button>
+    <header class="timer-header">
+      <h1 id="blockCategory">FOCUS</h1>
+      <h2 id="blockTitle">GAME NAME</h2>
+      <p id="blockShortInstructions">Instructions</p>
+    </header>
+    <main>
+      <div id="timerDisplay" class="timer">00:00</div>
+      
+      <div id="coachTipBox" class="coach-tip hidden">
+        <span class="coach-tip-label">COACH TIP:</span>
+        <p id="t_coachTipText">Medzi blokmi si daj krátku pauzu. Vypni sústredenie, napi sa a zves ruky. Zápasy trvajú cca 10-20 minút, preto je dôležité trénovať aj oddych a reštart koncentrácie.</p>
+      </div>
+    </main>
+    <nav class="controls-vertical">
+      <button id="mainBtn" class="btn-primary">⏸ PAUSE</button>
+    </nav>
+  </div>
+
+  <footer class="seal-area">
+    <strong>Darts Colosseum ®</strong> | Official Data System<br>
+    <span class="seal-sub">© 2026 | System Architecture & Design by Tomáš Strnisko</span>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
