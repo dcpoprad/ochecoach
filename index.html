@@ -64,6 +64,30 @@
     <nav class="controls-vertical"><button id="mainBtn" class="btn-primary">|| PAUSE</button></nav>
   </div>
 
+  <div id="summaryView" class="app-container hidden">
+    <header class="lobby-header dynamic-logo-header"><img src="https://raw.githubusercontent.com/dcpoprad/dc-poprad-assets/main/OC_logo.png" alt="Oche Coach Logo" class="app-logo"></header>
+    <main style="width: 100%; max-width: 400px; margin: auto;">
+      <h1 id="t_summaryTitle" style="font-family: 'Oswald', sans-serif; font-size: 2.3rem; margin: 0 0 5px 0; text-transform: uppercase; color: var(--gold); letter-spacing: 1.5px;">SESSION COMPLETE</h1>
+      <h2 id="summaryDynamicText" style="font-family: 'Oswald', sans-serif; color: #fff; font-size: 1.1rem; margin: 0 0 25px 0; text-transform: uppercase;">Great 60-minute session!</h2>
+      <div class="coach-tip" style="margin-bottom: 25px; border-color: rgba(223, 177, 91, 0.4);">
+        <span class="coach-tip-label" style="color: var(--gold);">COACH:</span>
+        <p id="t_summaryQuote">"You are on a great path..."</p>
+      </div>
+      <div style="background-color: var(--bg-dark); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; display: flex; justify-content: space-around; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+         <div>
+            <div id="t_statsWeek" style="color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">This week:</div>
+            <div id="statWeekVal" style="color: var(--copper); font-family: 'Oswald', sans-serif; font-size: 1.5rem; font-weight: 700;">0h 0m</div>
+         </div>
+         <div style="width: 1px; background-color: rgba(255,255,255,0.1);"></div>
+         <div>
+            <div id="t_statsMonth" style="color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">This month:</div>
+            <div id="statMonthVal" style="color: var(--copper); font-family: 'Oswald', sans-serif; font-size: 1.5rem; font-weight: 700;">0h 0m</div>
+         </div>
+      </div>
+    </main>
+    <nav class="action-area"><button id="btnDone" class="btn-primary">DONE</button></nav>
+  </div>
+
   <footer class="seal-area">
     <strong>Darts Colosseum ®</strong> | Official Data System<br><span class="seal-sub">© 2026 | System Architecture & Design by Tomáš Strnisko</span>
   </footer>
