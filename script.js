@@ -27,6 +27,23 @@ function applyLanguage() {
     document.getElementById('t_exit').innerText = dict[currentLang].exit; document.getElementById('btnChangeGame').innerText = dict[currentLang].btnChange;
     document.getElementById('hintReadyBtn').innerText = dict[currentLang].btnGameOn;
     if(document.getElementById('t_coachTipText')) document.getElementById('t_coachTipText').innerText = dict[currentLang].coachTip;
+
+    // Aplikovanie jazyka aj na novú záverečnú obrazovku
+    if(document.getElementById('t_summaryQuote')) document.getElementById('t_summaryQuote').innerText = dict[currentLang].summaryQuote;
+    if(document.getElementById('t_statsWeek')) document.getElementById('t_statsWeek').innerText = dict[currentLang].statsWeek + ":";
+    if(document.getElementById('t_statsMonth')) document.getElementById('t_statsMonth').innerText = dict[currentLang].statsMonth + ":";
+    if(document.getElementById('btnDone')) document.getElementById('btnDone').innerText = dict[currentLang].btnDone;
+
+    let isUlt = selectedTime === 180;
+    if(document.getElementById('t_summaryTitle')) document.getElementById('t_summaryTitle').innerText = isUlt ? dict[currentLang].ultimateTitle : dict[currentLang].summaryTitle;
+
+    if(selectedFocus && selectedTime) {
+        let dynText = currentLang === 'EN' ? `Great ${selectedTime}-minute session focused on ${selectedFocus.toUpperCase()}!` : `Skvelá ${selectedTime}-minútovka zameraná na ${selectedFocus.toUpperCase()}!`;
+        if (isUlt) dynText = currentLang === 'EN' ? "Brutal! You survived the ULTIMATE training!" : "Brutálne! Zvládol si ULTIMATE tréning!";
+        if (selectedFocus === 'Tournament') dynText = currentLang === 'EN' ? "Great Warm-Up! You are match-ready." : "Skvelé rozohriatie! Si pripravený na zápas.";
+        if(document.getElementById('summaryDynamicText')) document.getElementById('summaryDynamicText').innerText = dynText;
+    }
+
     updateMainBtnText();
 }
 
@@ -76,20 +93,11 @@ function showSummary() {
     let stats = saveAndGetStats(selectedTime);
     let isUlt = selectedTime === 180;
     
-    document.getElementById('t_summaryTitle').innerText = isUlt ? dict[currentLang].ultimateTitle : dict[currentLang].summaryTitle;
     document.getElementById('t_summaryTitle').style.color = isUlt ? 'var(--gold)' : 'var(--copper)';
-    
-    let dynText = currentLang === 'EN' ? `Great ${selectedTime}-minute session focused on ${selectedFocus.toUpperCase()}!` : `Skvelá ${selectedTime}-minútovka zameraná na ${selectedFocus.toUpperCase()}!`;
-    if (isUlt) dynText = currentLang === 'EN' ? "Brutal! You survived the ULTIMATE training!" : "Brutálne! Zvládol si ULTIMATE tréning!";
-    if (selectedFocus === 'Tournament') dynText = currentLang === 'EN' ? "Great Warm-Up! You are match-ready." : "Skvelé rozohriatie! Si pripravený na zápas.";
-    
-    document.getElementById('summaryDynamicText').innerText = dynText;
-    document.getElementById('t_summaryQuote').innerText = dict[currentLang].summaryQuote;
     document.getElementById('statWeekVal').innerText = stats.w;
     document.getElementById('statMonthVal').innerText = stats.m;
-    document.getElementById('t_statsWeek').innerText = dict[currentLang].statsWeek + ":";
-    document.getElementById('t_statsMonth').innerText = dict[currentLang].statsMonth + ":";
-    document.getElementById('btnDone').innerText = dict[currentLang].btnDone;
+    
+    applyLanguage();
     
     document.getElementById('summaryView').classList.remove('hidden');
     document.getElementById('langToggle').classList.remove('hidden'); document.getElementById('infoToggle').classList.remove('hidden');
@@ -175,7 +183,14 @@ function startTimer() {
         if (timeLeft <= 0) {
             clearInterval(timerId); timerId = null; timeLeft = 0; currentState = 'ZERO_WAIT'; updateTimerUI();
             bellSound.volume = 1.0; bellSound.play().catch(e => console.log(e));
-            setTimeout(() => { if (selectedFocus === 'Tournament') showSummary(); else { currentState = 'FINISHED'; updateTimerUI(); } }, 3000);
+            setTimeout(() => { 
+                // ZMENA: Ak je to turnaj, alebo ak sme odohrali úplne POSLEDNÝ blok v pláne, skoč hneď na záverečnú obrazovku
+                if (selectedFocus === 'Tournament' || currentBlockIndex >= currentBlockPlan.length - 1) {
+                    showSummary(); 
+                } else { 
+                    currentState = 'FINISHED'; updateTimerUI(); 
+                } 
+            }, 3000);
         } else updateTimerUI();
     }, 1000);
     updateTimerUI();
