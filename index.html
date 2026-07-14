@@ -36,8 +36,7 @@
     </div>
     <div class="selection-group"><h3 id="t_tournament">TOURNAMENT</h3>
       <div class="tile-grid">
-        <div class="tile tourney-tile" id="warmUpSeqBtn" data-val="15" style="flex: 1 1 45%; font-size: 1.1rem; padding: 12px 6px;">3x5 MIN<br><span style="font-size: 0.7rem; opacity: 0.8;" id="t_seq">SEQUENCE</span></div>
-        <div class="tile tourney-tile" id="warmUpFreeBtn" data-val="15" style="flex: 1 1 45%; font-size: 1.1rem; padding: 12px 6px;">15 MIN<br><span style="font-size: 0.7rem; opacity: 0.8;" id="t_free">FREE CHOICE</span></div>
+        <div class="tile tourney-tile" id="warmUpSeqBtn" data-val="15" style="flex: 1 1 100%; font-size: 1.2rem; padding: 15px 10px;">15 MIN WARM-UP</div>
       </div>
     </div>
     <div class="action-area"><button id="enterBtn" class="btn-primary" disabled>GO TO OCHE</button></div>
@@ -52,7 +51,12 @@
 
   <div id="timerView" class="app-container hidden">
     <button class="btn-top-corner exit-trigger"><span class="x-icon">✕</span><span class="x-text" id="t_exit">EXIT</span></button>
-    <header class="timer-header"><h1 id="blockCategory">FOCUS</h1><h2 id="blockTitle">GAME NAME</h2><p id="blockShortInstructions">Instructions</p></header>
+    <header class="timer-header">
+      <h1 id="blockCategory">FOCUS</h1>
+      <h2 id="blockTitle">GAME NAME</h2>
+      <p id="blockShortInstructions">Instructions</p>
+      <div id="coachTipBox" class="coach-tip hidden"><span class="coach-tip-label">COACH TIP:</span><p id="t_coachTipText">Medzi blokmi si daj krátku pauzu. Vypni sústredenie, napi sa a zves ruky.</p></div>
+    </header>
     <main>
       <div class="timer-wrapper">
         <svg id="completionRing" class="hidden" viewBox="0 0 200 200">
@@ -60,9 +64,11 @@
           <circle cx="100" cy="100" r="90" stroke="rgba(255,255,255,0.05)" stroke-width="12" fill="none" stroke-dasharray="2.5 6.9247" />
           <circle cx="100" cy="100" r="90" stroke="#22c55e" stroke-width="12" fill="none" stroke-dasharray="2.5 6.9247" mask="url(#ringMask)" />
         </svg>
+
+        <div id="activeTargetDisplay" class="active-target hidden"></div>
+
         <div id="timerDisplay" class="timer">00:00</div>
       </div>
-      <div id="coachTipBox" class="coach-tip hidden"><span class="coach-tip-label">COACH TIP:</span><p id="t_coachTipText">Medzi blokmi si daj krátku pauzu. Vypni sústredenie, napi sa a zves ruky.</p></div>
     </main>
     <nav class="controls-vertical"><button id="mainBtn" class="btn-primary">|| PAUSE</button></nav>
   </div>
