@@ -250,7 +250,11 @@ function setupEventListeners() {
         
         const targetDisp = document.getElementById('activeTargetDisplay');
         if (currentTargets.length > 0) {
-            targetDisp.innerText = currentTargets[0];
+            let tText = currentTargets[0];
+            targetDisp.innerText = tText;
+            if(tText.length > 10) targetDisp.style.fontSize = 'clamp(1rem, 7vw, 35px)';
+            else if(tText.length > 4) targetDisp.style.fontSize = 'clamp(1.8rem, 12vw, 60px)';
+            else targetDisp.style.fontSize = '';
             targetDisp.classList.remove('hidden');
             if (currentTargets.length > 1) {
                 let totalSeconds = (blockMins * 60) / TIME_MULTIPLIER;
@@ -298,7 +302,12 @@ function startTimer() {
             let expectedIndex = Math.floor(timePassedInBlock / targetInterval);
             if (expectedIndex > currentTargetIndex && expectedIndex < currentTargets.length) {
                 currentTargetIndex = expectedIndex;
-                document.getElementById('activeTargetDisplay').innerText = currentTargets[currentTargetIndex];
+                let targetDisp = document.getElementById('activeTargetDisplay');
+                let tText = currentTargets[currentTargetIndex];
+                targetDisp.innerText = tText;
+                if(tText.length > 10) targetDisp.style.fontSize = 'clamp(1rem, 7vw, 35px)';
+                else if(tText.length > 4) targetDisp.style.fontSize = 'clamp(1.8rem, 12vw, 60px)';
+                else targetDisp.style.fontSize = '';
                 playSystemBeep(800, 0.15); setTimeout(() => playSystemBeep(800, 0.15), 200);
             }
         }
