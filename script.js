@@ -1,5 +1,6 @@
-let currentLang = 'EN', currentState = 'READY', timeLeft = 0, timerId = null, selectedTime = null, selectedFocus = null, currentGameIndex = 0, currentActiveGames = [];
-let currentBlockPlan = [], currentBlockIndex = 0, beepInterval = 0, timePassedInBlock = 0, audioCtx = null;
+let currentLang = ['sk', 'cs'].includes((navigator.language || 'en').slice(0, 2).toLowerCase()) ? 'SK' : 'EN', currentState = 'READY', timeLeft = 0, timerId = null, selectedTime = null, selectedFocus = null, currentGameIndex = 0, currentActiveGames = [];
+let currentBlockPlan = [], currentBlockIndex = 0, timePassedInBlock = 0, audioCtx = null;
+let currentTargets = [], targetInterval = 0, currentTargetIndex = 0;
 const bellSound = new Audio("https://raw.githubusercontent.com/dcpoprad/dc-poprad-assets/main/ship-bell-two-chimes-102730%20(1).mp3");
 
 // PREDVOLENE NASTAVENÝ REÁLNY ČAS (1 = Real time, 60 = Test mode)
@@ -155,23 +156,20 @@ function setupEventListeners() {
             selectedTime = parseInt(this.getAttribute('data-val')); const mixTile = document.getElementById('mixTile');
             window.isTourneySeq = false;
             if (selectedTime === 180) { document.querySelectorAll('.focus-tile').forEach(f => f.classList.remove('active')); mixTile.classList.remove('disabled'); mixTile.classList.add('active'); selectedFocus = 'Mix'; } 
-            else if (selectedTime === 30 || selectedTime === 45) { mixTile.classList.add('disabled'); if (selectedFocus === 'Mix') { selectedFocus = null; mixTile.classList.remove('active'); } } 
-            else mixTile.classList.remove('disabled'); checkRequirements();
+            else { mixTile.classList.remove('disabled'); } checkRequirements();
         });
     });
 
     document.querySelectorAll('.focus-tile').forEach(tile => { tile.addEventListener('click', function() { if (this.classList.contains('disabled')) return; document.querySelectorAll('.tourney-tile').forEach(t => t.classList.remove('active')); document.querySelectorAll('.focus-tile').forEach(f => f.classList.remove('active')); this.classList.add('active'); selectedFocus = this.getAttribute('data-val'); checkRequirements(); }); });
 
     document.getElementById('warmUpSeqBtn').addEventListener('click', function() { document.querySelectorAll('.tile').forEach(t => t.classList.remove('active')); this.classList.add('active'); selectedTime = 15; selectedFocus = 'Tournament'; window.isTourneySeq = true; checkRequirements(); });
-    document.getElementById('warmUpFreeBtn').addEventListener('click', function() { document.querySelectorAll('.tile').forEach(t => t.classList.remove('active')); this.classList.add('active'); selectedTime = 15; selectedFocus = 'Tournament'; window.isTourneySeq = false; checkRequirements(); });
 
     document.getElementById('enterBtn').addEventListener('click', () => {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         currentActiveGames = gamesDB[selectedFocus]; 
         
         if (selectedTime === 30) currentBlockPlan = [10, 10, 10]; else if (selectedTime === 45) currentBlockPlan = [15, 15, 15]; else if (selectedTime === 60) currentBlockPlan = [20, 20, 20]; else if (selectedTime === 90) currentBlockPlan = [15, 15, 20, 20, 20]; else if (selectedTime === 180) currentBlockPlan = [15, 15, 15, 15, 20, 20, 20, 30, 30]; 
-        else if (selectedTime === 15 && window.isTourneySeq) currentBlockPlan = [5, 5, 5]; 
-        else currentBlockPlan = [15];
+        else if (selectedFocus === 'Tournament') currentBlockPlan = [10, 5]; else currentBlockPlan = [15];
         
         currentBlockIndex = 0;
         currentGameIndex = getSmartGameIndex(currentActiveGames, currentBlockPlan[currentBlockIndex], -1);
@@ -194,14 +192,46 @@ function setupEventListeners() {
 
     function getSmartGameIndex(list, blockMins, prevIndex) {
         if (window.isTourneySeq) return currentBlockIndex;
+        
+        if (prevIndex === -1 || !window.playedSessionGames) {
+            window.playedSessionGames = [];
+        }
+        
         let valid = [];
         for (let i = 0; i < list.length; i++) {
-            if (list.length > 1 && i === prevIndex) continue;
+            if (window.playedSessionGames.includes(i)) continue;
             if (blockMins < 20 && (list[i].en_title === "MasterCaller" || list[i].en_title === "Game 201 DO")) continue;
+            
+            if (selectedFocus === 'Mix') {
+                let isWarmupOrSingles = gamesDB['Tournament'].includes(list[i]) || gamesDB['Singles'].includes(list[i]);
+                if (currentBlockIndex === 0 && !isWarmupOrSingles) continue;
+                if (currentBlockIndex > 0 && gamesDB['Tournament'].includes(list[i])) continue;
+            }
+            
             valid.push(i);
         }
+        
+        if (valid.length === 0) {
+            window.playedSessionGames = prevIndex !== -1 ? [prevIndex] : [];
+            for (let i = 0; i < list.length; i++) {
+                if (window.playedSessionGames.includes(i)) continue;
+                if (blockMins < 20 && (list[i].en_title === "MasterCaller" || list[i].en_title === "Game 201 DO")) continue;
+                
+                if (selectedFocus === 'Mix') {
+                    let isWarmupOrSingles = gamesDB['Tournament'].includes(list[i]) || gamesDB['Singles'].includes(list[i]);
+                    if (currentBlockIndex === 0 && !isWarmupOrSingles) continue;
+                    if (currentBlockIndex > 0 && gamesDB['Tournament'].includes(list[i])) continue;
+                }
+                
+                valid.push(i);
+            }
+        }
+        
         if (valid.length === 0) return 0;
-        return valid[Math.floor(Math.random() * valid.length)];
+        
+        let chosen = valid[Math.floor(Math.random() * valid.length)];
+        window.playedSessionGames.push(chosen);
+        return chosen;
     }
 
     document.getElementById('hintReadyBtn').addEventListener('click', () => {
@@ -215,7 +245,24 @@ function setupEventListeners() {
         timeLeft = (blockMins * 60) / TIME_MULTIPLIER; 
         timePassedInBlock = 0;
         
-        if (blockMins === 10) beepInterval = (2 * 60) / TIME_MULTIPLIER; else if (blockMins === 15 || blockMins === 20) beepInterval = (5 * 60) / TIME_MULTIPLIER; else if (blockMins === 30) beepInterval = (10 * 60) / TIME_MULTIPLIER;
+        currentTargets = game.targets || [];
+        currentTargetIndex = 0;
+        
+        const targetDisp = document.getElementById('activeTargetDisplay');
+        if (currentTargets.length > 0) {
+            targetDisp.innerText = currentTargets[0];
+            targetDisp.classList.remove('hidden');
+            if (currentTargets.length > 1) {
+                let totalSeconds = (blockMins * 60) / TIME_MULTIPLIER;
+                targetInterval = totalSeconds / currentTargets.length;
+            } else {
+                targetInterval = 0;
+            }
+        } else {
+            targetDisp.classList.add('hidden');
+            targetInterval = 0;
+        }
+        
         currentState = 'RUNNING'; startTimer();
     });
 
@@ -240,15 +287,22 @@ function setupEventListeners() {
 }
 
 function checkRequirements() { if (selectedTime && selectedFocus && isDbLoaded) document.getElementById('enterBtn').removeAttribute('disabled'); else document.getElementById('enterBtn').setAttribute('disabled', 'true'); }
-function updateHintTexts() { const g = currentActiveGames[currentGameIndex]; document.getElementById('hintCategory').innerText = selectedFocus.toUpperCase(); document.getElementById('hintTitle').innerText = currentLang === 'EN' ? g.en_title : g.sk_title; document.getElementById('hintLongText').innerText = currentLang === 'EN' ? g.en_long : g.sk_long; }
+function updateHintTexts() { if(currentActiveGames.length === 0 || !currentActiveGames[currentGameIndex]) return; const g = currentActiveGames[currentGameIndex]; document.getElementById('hintCategory').innerText = selectedFocus.toUpperCase(); document.getElementById('hintTitle').innerText = currentLang === 'EN' ? g.en_title : g.sk_title; document.getElementById('hintLongText').innerText = currentLang === 'EN' ? g.en_long : g.sk_long; }
 
 function startTimer() {
     if (timerId) clearInterval(timerId);
     timerId = setInterval(() => {
         timeLeft--; timePassedInBlock++;
-        if (timeLeft > 0 && beepInterval > 0 && timePassedInBlock % beepInterval === 0) {
-            playSystemBeep(800, 0.15); setTimeout(() => playSystemBeep(800, 0.15), 200);
+        
+        if (timeLeft > 0 && targetInterval > 0) {
+            let expectedIndex = Math.floor(timePassedInBlock / targetInterval);
+            if (expectedIndex > currentTargetIndex && expectedIndex < currentTargets.length) {
+                currentTargetIndex = expectedIndex;
+                document.getElementById('activeTargetDisplay').innerText = currentTargets[currentTargetIndex];
+                playSystemBeep(800, 0.15); setTimeout(() => playSystemBeep(800, 0.15), 200);
+            }
         }
+        
         if (timeLeft <= 0) {
             clearInterval(timerId); timerId = null; timeLeft = 0; currentState = 'ZERO_WAIT'; updateTimerUI();
             bellSound.volume = 1.0; bellSound.play().catch(e => console.log(e));
@@ -265,13 +319,15 @@ function startTimer() {
 }
 
 function updateTimerUI() {
-    const disp = document.getElementById('timerDisplay'), tip = document.getElementById('coachTipBox'), ring = document.getElementById('completionRing'), btn = document.getElementById('mainBtn');
+    const disp = document.getElementById('timerDisplay'), tip = document.getElementById('coachTipBox'), ring = document.getElementById('completionRing'), btn = document.getElementById('mainBtn'), targetDisp = document.getElementById('activeTargetDisplay');
     if (!disp) return; 
     let t = TIME_MULTIPLIER !== 1 && currentState !== 'FINISHED' ? timeLeft * TIME_MULTIPLIER : timeLeft;
     disp.innerText = `${Math.floor(t / 60).toString().padStart(2, '0')}:${(t % 60).toString().padStart(2, '0')}`;
-    if (currentState === 'FINISHED') { disp.classList.add('hidden'); if(ring) ring.classList.add('hidden'); if(tip) { if(selectedFocus === 'Tournament') tip.classList.add('hidden'); else tip.classList.remove('hidden'); } btn.style.display = 'block'; }
-    else if (currentState === 'ZERO_WAIT') { disp.classList.remove('hidden'); if(tip) tip.classList.add('hidden'); if(ring) { ring.classList.remove('hidden'); void ring.offsetWidth; ring.classList.add('ring-animate'); } btn.style.display = 'none'; } 
-    else { disp.classList.remove('hidden'); if(tip) tip.classList.add('hidden'); if(ring) { ring.classList.add('hidden'); ring.classList.remove('ring-animate'); } btn.style.display = 'block'; }
+  
+    if (currentState === 'FINISHED') { document.getElementById('blockShortInstructions').classList.add('hidden'); disp.classList.add('hidden'); if(ring) ring.classList.add('hidden'); if(targetDisp) targetDisp.classList.add('hidden'); if(tip) { if(selectedFocus === 'Tournament') tip.classList.add('hidden'); else tip.classList.remove('hidden'); } btn.style.visibility = 'visible'; }
+    else if (currentState === 'ZERO_WAIT') { document.getElementById('blockShortInstructions').classList.remove('hidden'); disp.classList.remove('hidden'); if(tip) tip.classList.add('hidden'); if(targetDisp) targetDisp.classList.add('hidden'); if(ring) { ring.classList.remove('hidden'); void ring.offsetWidth; ring.classList.add('ring-animate'); } btn.style.visibility = 'hidden'; } 
+    else { document.getElementById('blockShortInstructions').classList.remove('hidden'); disp.classList.remove('hidden'); if(tip) tip.classList.add('hidden'); if(targetDisp && currentTargets.length > 0) targetDisp.classList.remove('hidden'); if(ring) { ring.classList.add('hidden'); ring.classList.remove('ring-animate'); } btn.style.visibility = 'visible'; }
+  
     if (timeLeft <= (10 / TIME_MULTIPLIER) && timeLeft > 0) disp.className = timeLeft > (5 / TIME_MULTIPLIER) ? 'timer alert-pulse' : 'timer red-zone'; else disp.className = 'timer';
     if (currentState === 'PAUSED') disp.classList.add('paused'); else disp.classList.remove('paused');
     updateMainBtnText();
@@ -296,14 +352,18 @@ function loadDatabase() {
             else if (rawCat === "CHECKOUTS") cat = "Checkouts";
             else continue; 
             
+            let targetsRaw = r.length > 7 && r[7] ? r[7].trim() : "";
+            let targetsArr = targetsRaw ? targetsRaw.split(',').map(s => s.trim()).filter(s => s.length > 0) : [];
+            
             gamesDB[cat].push({
                 en_title: r[1].trim(), sk_title: r[2].trim(),
                 en_short: r[3].trim(), sk_short: r[4].trim(),
-                en_long: r[5].trim(), sk_long: r[6].trim()
+                en_long: r[5].trim(), sk_long: r[6].trim(),
+                targets: targetsArr
             });
         }
         
-        gamesDB['Mix'] = [].concat(gamesDB['Singles'], gamesDB['Scoring'], gamesDB['Doubles'], gamesDB['Checkouts']);
+        gamesDB['Mix'] = [].concat(gamesDB['Tournament'], gamesDB['Singles'], gamesDB['Scoring'], gamesDB['Doubles'], gamesDB['Checkouts']);
         isDbLoaded = true;
         checkRequirements(); 
         console.log("OCHE COACH Database successfully loaded from Google Sheets!");
