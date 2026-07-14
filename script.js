@@ -252,8 +252,8 @@ function setupEventListeners() {
         if (currentTargets.length > 0) {
             let tText = currentTargets[0];
             targetDisp.innerText = tText;
-            if(tText.length > 10) targetDisp.style.fontSize = 'clamp(1rem, 7vw, 35px)';
-            else if(tText.length > 4) targetDisp.style.fontSize = 'clamp(1.8rem, 12vw, 60px)';
+            if(tText.length > 10) targetDisp.style.fontSize = '9vw';
+            else if(tText.length > 4) targetDisp.style.fontSize = '14vw';
             else targetDisp.style.fontSize = '';
             targetDisp.classList.remove('hidden');
             if (currentTargets.length > 1) {
@@ -305,8 +305,8 @@ function startTimer() {
                 let targetDisp = document.getElementById('activeTargetDisplay');
                 let tText = currentTargets[currentTargetIndex];
                 targetDisp.innerText = tText;
-                if(tText.length > 10) targetDisp.style.fontSize = 'clamp(1rem, 7vw, 35px)';
-                else if(tText.length > 4) targetDisp.style.fontSize = 'clamp(1.8rem, 12vw, 60px)';
+                if(tText.length > 10) targetDisp.style.fontSize = '9vw';
+                else if(tText.length > 4) targetDisp.style.fontSize = '14vw';
                 else targetDisp.style.fontSize = '';
                 playSystemBeep(800, 0.15); setTimeout(() => playSystemBeep(800, 0.15), 200);
             }
