@@ -123,7 +123,7 @@ function resetToLobby() {
     document.querySelectorAll('.app-container').forEach(el => el.classList.add('hidden')); document.getElementById('lobbyView').classList.remove('hidden');
     document.getElementById('langToggle').classList.remove('hidden'); document.getElementById('infoToggle').classList.remove('hidden');
     document.getElementById('timerDisplay').classList.remove('hidden');
-    if(document.getElementById('coachTipBox')) document.getElementById('coachTipBox').classList.add('hidden');
+    if(document.getElementById('coachTipBox')) { document.getElementById('coachTipBox').classList.add('invisible'); document.getElementById('coachTipBox').classList.remove('hidden'); }
     if(document.getElementById('completionRing')) { document.getElementById('completionRing').classList.add('hidden'); document.getElementById('completionRing').classList.remove('ring-animate'); }
     selectedTime = null; selectedFocus = null; currentState = 'READY'; document.querySelectorAll('.tile').forEach(t => t.classList.remove('active')); document.getElementById('enterBtn').setAttribute('disabled', 'true'); updateTimerUI();
 }
@@ -238,7 +238,7 @@ function setupEventListeners() {
         const game = currentActiveGames[currentGameIndex];
         document.getElementById('blockCategory').innerText = selectedFocus.toUpperCase(); document.getElementById('blockTitle').innerText = currentLang === 'EN' ? game.en_title : game.sk_title; document.getElementById('blockShortInstructions').innerText = currentLang === 'EN' ? game.en_short : game.sk_short;
         document.getElementById('hintView').classList.add('hidden'); document.getElementById('timerView').classList.remove('hidden'); document.getElementById('timerDisplay').classList.remove('hidden');
-        if(document.getElementById('coachTipBox')) document.getElementById('coachTipBox').classList.add('hidden');
+        if(document.getElementById('coachTipBox')) { document.getElementById('coachTipBox').classList.add('invisible'); document.getElementById('coachTipBox').classList.remove('hidden'); }
         if(document.getElementById('completionRing')) { document.getElementById('completionRing').classList.add('hidden'); document.getElementById('completionRing').classList.remove('ring-animate'); }
         
         let blockMins = currentBlockPlan[currentBlockIndex]; 
@@ -252,9 +252,6 @@ function setupEventListeners() {
         if (currentTargets.length > 0) {
             let tText = currentTargets[0];
             targetDisp.innerText = tText;
-            if(tText.length > 10) targetDisp.style.fontSize = '9vw';
-            else if(tText.length > 4) targetDisp.style.fontSize = '14vw';
-            else targetDisp.style.fontSize = '';
             targetDisp.classList.remove('hidden');
             if (currentTargets.length > 1) {
                 let totalSeconds = (blockMins * 60) / TIME_MULTIPLIER;
@@ -280,7 +277,7 @@ function setupEventListeners() {
                 currentGameIndex = getSmartGameIndex(currentActiveGames, currentBlockPlan[currentBlockIndex], currentGameIndex); 
                 updateHintTexts();
                 document.getElementById('timerView').classList.add('hidden'); document.getElementById('hintView').classList.remove('hidden'); document.getElementById('timerDisplay').classList.remove('hidden');
-                if(document.getElementById('coachTipBox')) document.getElementById('coachTipBox').classList.add('hidden');
+                if(document.getElementById('coachTipBox')) { document.getElementById('coachTipBox').classList.add('invisible'); document.getElementById('coachTipBox').classList.remove('hidden'); }
                 if(document.getElementById('completionRing')) { document.getElementById('completionRing').classList.add('hidden'); document.getElementById('completionRing').classList.remove('ring-animate'); }
             }
         }
@@ -305,9 +302,6 @@ function startTimer() {
                 let targetDisp = document.getElementById('activeTargetDisplay');
                 let tText = currentTargets[currentTargetIndex];
                 targetDisp.innerText = tText;
-                if(tText.length > 10) targetDisp.style.fontSize = '9vw';
-                else if(tText.length > 4) targetDisp.style.fontSize = '14vw';
-                else targetDisp.style.fontSize = '';
                 playSystemBeep(800, 0.15); setTimeout(() => playSystemBeep(800, 0.15), 200);
             }
         }
@@ -333,9 +327,34 @@ function updateTimerUI() {
     let t = TIME_MULTIPLIER !== 1 && currentState !== 'FINISHED' ? timeLeft * TIME_MULTIPLIER : timeLeft;
     disp.innerText = `${Math.floor(t / 60).toString().padStart(2, '0')}:${(t % 60).toString().padStart(2, '0')}`;
   
-    if (currentState === 'FINISHED') { document.getElementById('blockShortInstructions').classList.add('hidden'); disp.classList.add('hidden'); if(ring) ring.classList.add('hidden'); if(targetDisp) targetDisp.classList.add('hidden'); if(tip) { if(selectedFocus === 'Tournament') tip.classList.add('hidden'); else tip.classList.remove('hidden'); } btn.style.visibility = 'visible'; }
-    else if (currentState === 'ZERO_WAIT') { document.getElementById('blockShortInstructions').classList.remove('hidden'); disp.classList.remove('hidden'); if(tip) tip.classList.add('hidden'); if(targetDisp) targetDisp.classList.add('hidden'); if(ring) { ring.classList.remove('hidden'); void ring.offsetWidth; ring.classList.add('ring-animate'); } btn.style.visibility = 'hidden'; } 
-    else { document.getElementById('blockShortInstructions').classList.remove('hidden'); disp.classList.remove('hidden'); if(tip) tip.classList.add('hidden'); if(targetDisp && currentTargets.length > 0) targetDisp.classList.remove('hidden'); if(ring) { ring.classList.add('hidden'); ring.classList.remove('ring-animate'); } btn.style.visibility = 'visible'; }
+    if (currentState === 'FINISHED') { 
+        document.getElementById('blockShortInstructions').classList.add('invisible'); 
+        disp.classList.add('hidden'); 
+        if(ring) ring.classList.add('hidden'); 
+        if(targetDisp) targetDisp.classList.add('hidden'); 
+        if(tip) { 
+            tip.classList.remove('hidden');
+            if(selectedFocus === 'Tournament') tip.classList.add('invisible'); 
+            else tip.classList.remove('invisible'); 
+        } 
+        btn.style.visibility = 'visible'; 
+    }
+    else if (currentState === 'ZERO_WAIT') { 
+        document.getElementById('blockShortInstructions').classList.remove('invisible'); 
+        disp.classList.remove('hidden'); 
+        if(tip) { tip.classList.remove('hidden'); tip.classList.add('invisible'); } 
+        if(targetDisp) targetDisp.classList.add('hidden'); 
+        if(ring) { ring.classList.remove('hidden'); void ring.offsetWidth; ring.classList.add('ring-animate'); } 
+        btn.style.visibility = 'hidden'; 
+    } 
+    else { 
+        document.getElementById('blockShortInstructions').classList.remove('invisible'); 
+        disp.classList.remove('hidden'); 
+        if(tip) { tip.classList.remove('hidden'); tip.classList.add('invisible'); } 
+        if(targetDisp && currentTargets.length > 0) targetDisp.classList.remove('hidden'); 
+        if(ring) { ring.classList.add('hidden'); ring.classList.remove('ring-animate'); } 
+        btn.style.visibility = 'visible'; 
+    }
   
     if (timeLeft <= (10 / TIME_MULTIPLIER) && timeLeft > 0) disp.className = timeLeft > (5 / TIME_MULTIPLIER) ? 'timer alert-pulse' : 'timer red-zone'; else disp.className = 'timer';
     if (currentState === 'PAUSED') disp.classList.add('paused'); else disp.classList.remove('paused');
