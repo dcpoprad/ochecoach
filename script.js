@@ -155,8 +155,13 @@ function setupEventListeners() {
             document.querySelectorAll('.tourney-tile').forEach(t => t.classList.remove('active')); document.querySelectorAll('.time-tile').forEach(t => t.classList.remove('active')); this.classList.add('active');
             selectedTime = parseInt(this.getAttribute('data-val')); const mixTile = document.getElementById('mixTile');
             window.isTourneySeq = false;
-            if (selectedTime === 180) { document.querySelectorAll('.focus-tile').forEach(f => f.classList.remove('active')); mixTile.classList.remove('disabled'); mixTile.classList.add('active'); selectedFocus = 'Mix'; } 
-            else { mixTile.classList.remove('disabled'); } checkRequirements();
+            if (selectedTime >= 60) { 
+                document.querySelectorAll('.focus-tile').forEach(f => { f.classList.remove('active'); if (f.id !== 'mixTile') f.classList.add('disabled'); }); 
+                mixTile.classList.remove('disabled'); mixTile.classList.add('active'); selectedFocus = 'Mix'; 
+            } else { 
+                document.querySelectorAll('.focus-tile').forEach(f => f.classList.remove('disabled')); 
+            } 
+            checkRequirements();
         });
     });
 
@@ -168,9 +173,13 @@ function setupEventListeners() {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         currentActiveGames = gamesDB[selectedFocus]; 
         
-        if (selectedTime === 30) currentBlockPlan = [10, 10, 10]; else if (selectedTime === 45) currentBlockPlan = [15, 15, 15]; else if (selectedTime === 60) currentBlockPlan = [20, 20, 20]; else if (selectedTime === 90) currentBlockPlan = [15, 15, 20, 20, 20]; else if (selectedTime === 180) currentBlockPlan = [15, 15, 15, 15, 20, 20, 20, 30, 30]; 
-        else if (selectedFocus === 'Tournament') currentBlockPlan = [10, 5]; else currentBlockPlan = [15];
-        
+        if (selectedTime === 30) currentBlockPlan = [10, 10, 10]; 
+        else if (selectedTime === 45) currentBlockPlan = [10, 10, 10, 15]; 
+        else if (selectedTime === 60) currentBlockPlan = [10, 10, 10, 15, 15]; 
+        else if (selectedTime === 90) currentBlockPlan = [10, 10, 10, 15, 15, 15, 15]; 
+        else if (selectedTime === 180) currentBlockPlan = [10, 10, 10, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15]; 
+        else if (selectedFocus === 'Tournament') currentBlockPlan = [10, 5]; 
+        else currentBlockPlan = [15];
         currentBlockIndex = 0;
         currentGameIndex = getSmartGameIndex(currentActiveGames, currentBlockPlan[currentBlockIndex], -1);
         updateHintTexts();
@@ -183,10 +192,11 @@ function setupEventListeners() {
 
     document.querySelector('.back-trigger').addEventListener('click', () => { document.getElementById('hintView').classList.add('hidden'); document.getElementById('lobbyView').classList.remove('hidden'); document.getElementById('langToggle').classList.remove('hidden'); document.getElementById('infoToggle').classList.remove('hidden'); });
     document.getElementById('btnChangeGame').addEventListener('click', () => { 
-        let bm = currentBlockPlan[currentBlockIndex]; let attempts = 0;
+        let bm = currentBlockPlan[currentBlockIndex];
+        let attempts = 0;
         do { 
             currentGameIndex = (currentGameIndex + 1) % currentActiveGames.length; attempts++; 
-        } while (attempts < currentActiveGames.length && bm < 20 && (currentActiveGames[currentGameIndex].en_title === "MasterCaller" || currentActiveGames[currentGameIndex].en_title === "Game 201 DO"));
+        } while (attempts < currentActiveGames.length && (currentActiveGames[currentGameIndex].en_title === "MasterCaller" || currentActiveGames[currentGameIndex].en_title === "Game 201 DO") && bm !== 15 && bm !== 20);
         updateHintTexts(); 
     });
 
@@ -196,38 +206,45 @@ function setupEventListeners() {
         if (prevIndex === -1 || !window.playedSessionGames) {
             window.playedSessionGames = [];
         }
+
+        // VÝPOČET FÁZY (od 0 do 100 % tréningu)
+        let progress = currentBlockPlan.length > 1 ? currentBlockIndex / (currentBlockPlan.length - 1) : 0;
+        let targetPhase = 1;
+        if (progress > 0.75) targetPhase = 4;
+        else if (progress > 0.50) targetPhase = 3;
+        else if (progress > 0.20) targetPhase = 2;
         
         let valid = [];
         for (let i = 0; i < list.length; i++) {
             if (window.playedSessionGames.includes(i)) continue;
-            if (blockMins < 20 && (list[i].en_title === "MasterCaller" || list[i].en_title === "Game 201 DO")) continue;
             
-            if (selectedFocus === 'Mix') {
-                let isWarmupOrSingles = gamesDB['Tournament'].includes(list[i]) || gamesDB['Singles'].includes(list[i]);
-                if (currentBlockIndex === 0 && !isWarmupOrSingles) continue;
-                if (currentBlockIndex > 0 && gamesDB['Tournament'].includes(list[i])) continue;
-            }
+            // Pravidlo 1: Hra musí súhlasiť s aktuálnou fázou
+            if (!list[i].phases.includes(targetPhase)) continue;
+            
+            // Pravidlo 2: MasterCaller a 201 DO len pre 15 a 20 minútové bloky
+            if ((list[i].en_title === "MasterCaller" || list[i].en_title === "Game 201 DO") && blockMins !== 15 && blockMins !== 20) continue;
+            
+            // Pravidlo 3: Turnajové hry nedávame do stredu MIXu
+            if (selectedFocus === 'Mix' && currentBlockIndex > 0 && gamesDB['Tournament'].includes(list[i])) continue;
             
             valid.push(i);
         }
         
+        // ZÁCHRANNÁ SIEŤ: Ak algoritmus nenájde vhodnú hru
         if (valid.length === 0) {
             window.playedSessionGames = prevIndex !== -1 ? [prevIndex] : [];
             for (let i = 0; i < list.length; i++) {
                 if (window.playedSessionGames.includes(i)) continue;
-                if (blockMins < 20 && (list[i].en_title === "MasterCaller" || list[i].en_title === "Game 201 DO")) continue;
-                
-                if (selectedFocus === 'Mix') {
-                    let isWarmupOrSingles = gamesDB['Tournament'].includes(list[i]) || gamesDB['Singles'].includes(list[i]);
-                    if (currentBlockIndex === 0 && !isWarmupOrSingles) continue;
-                    if (currentBlockIndex > 0 && gamesDB['Tournament'].includes(list[i])) continue;
-                }
-                
+                if (!list[i].phases.includes(targetPhase)) continue;
+                if ((list[i].en_title === "MasterCaller" || list[i].en_title === "Game 201 DO") && blockMins !== 15 && blockMins !== 20) continue;
+                if (selectedFocus === 'Mix' && currentBlockIndex > 0 && gamesDB['Tournament'].includes(list[i])) continue;
                 valid.push(i);
             }
+            // Ak stále nič nenájde (extrémny prípad), zoberie hocičo
+            if (valid.length === 0) {
+                for (let i = 0; i < list.length; i++) valid.push(i);
+            }
         }
-        
-        if (valid.length === 0) return 0;
         
         let chosen = valid[Math.floor(Math.random() * valid.length)];
         window.playedSessionGames.push(chosen);
@@ -383,11 +400,16 @@ function loadDatabase() {
             let targetsRaw = r.length > 7 && r[7] ? r[7].trim() : "";
             let targetsArr = targetsRaw ? targetsRaw.split(',').map(s => s.trim()).filter(s => s.length > 0) : [];
             
+            // Načítanie stĺpca Phases (index 8)
+            let phasesRaw = r.length > 8 && r[8] ? r[8].trim() : "";
+            let phasesArr = phasesRaw ? phasesRaw.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n)) : [1, 2, 3, 4];
+            
             gamesDB[cat].push({
                 en_title: r[1].trim(), sk_title: r[2].trim(),
                 en_short: r[3].trim(), sk_short: r[4].trim(),
                 en_long: r[5].trim(), sk_long: r[6].trim(),
-                targets: targetsArr
+                targets: targetsArr,
+                phases: phasesArr
             });
         }
         
