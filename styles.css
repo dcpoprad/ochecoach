@@ -17,7 +17,7 @@ body, html { margin: 0; padding: 0; height: 100%; background-color: var(--bg-mai
 .ultimate-mode.active { background-color: var(--gold); color: var(--bg-dark); border-color: var(--gold); box-shadow: 0 0 15px rgba(223, 177, 91, 0.6); }
 .tourney-tile { flex: 1 1 100%; color: var(--copper); border-color: rgba(213, 179, 154, 0.3); font-size: 1.2rem; padding: 16px; }
 .tourney-tile.active { background-color: var(--copper); color: var(--bg-dark); }
-.mix-tile.disabled { opacity: 0.15; pointer-events: none; }
+.tile.disabled { opacity: 0.2; pointer-events: none; filter: grayscale(100%); }
 .onboarding-content { max-width: 90%; margin: auto; }
 .onboarding-content h1 { font-family: 'Oswald', sans-serif; font-size: 2rem; color: var(--copper); text-transform: uppercase; }
 .onboarding-content p { color: var(--text-main); font-size: 1.1rem; line-height: 1.5; font-weight: 300; }
